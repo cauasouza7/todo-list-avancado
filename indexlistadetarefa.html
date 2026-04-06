@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>To-Do Avançado</title>
+
+<style>
+:root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: white;
+}
+
+.light {
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --text: #000;
+}
+
+body {
+  font-family: Arial;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.container {
+  background: var(--card);
+  padding: 25px;
+  border-radius: 15px;
+  width: 320px;
+  text-align: center;
+}
+
+input {
+  padding: 10px;
+  width: 65%;
+  border-radius: 5px;
+  border: none;
+}
+
+button {
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 5px;
+}
+
+.add { background: #38bdf8; color: white; }
+.clear { background: red; color: white; }
+
+li {
+  list-style: none;
+  background: #334155;
+  margin: 8px 0;
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.done {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>📋 To-Do Avançado</h2>
+
+  <input id="input" placeholder="Nova tarefa">
+  <button class="add" onclick="add()">+</button>
+
+  <div>
+    <button onclick="filter('all')">Todas</button>
+    <button onclick="filter('done')">Concluídas</button>
+    <button onclick="filter('todo')">Pendentes</button>
+  </div>
+
+  <ul id="list"></ul>
+
+  <p id="count"></p>
+
+  <button class="clear" onclick="clearAll()">Limpar</button>
+  <button onclick="toggleTheme()">🌙</button>
+</div>
+
+<script>
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+let currentFilter = "all";
+
+function save() {
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function render() {
+  const ul = document.getElementById("list");
+  ul.innerHTML = "";
+
+  let filtered = tasks.filter(t => {
+    if (currentFilter === "done") return t.done;
+    if (currentFilter === "todo") return !t.done;
+    return true;
+  });
+
+  filtered.forEach((t, i) => {
+    ul.innerHTML += `
+      <li class="${t.done ? 'done' : ''}">
+        <span onclick="toggle(${i})">${t.text}</span>
+        <div>
+          <button onclick="edit(${i})">✏️</button>
+          <button onclick="remove(${i})">❌</button>
+        </div>
+      </li>
+    `;
+  });
+
+  document.getElementById("count").innerText =
+    `Total: ${tasks.length}`;
+    
+  save();
+}
+
+function add() {
+  const input = document.getElementById("input");
+
+  if (input.value.trim()) {
+    tasks.push({ text: input.value, done: false });
+    input.value = "";
+    render();
+  }
+}
+
+function remove(i) {
+  tasks.splice(i, 1);
+  render();
+}
+
+function toggle(i) {
+  tasks[i].done = !tasks[i].done;
+  render();
+}
+
+function edit(i) {
+  const novo = prompt("Editar tarefa:", tasks[i].text);
+  if (novo) {
+    tasks[i].text = novo;
+    render();
+  }
+}
+
+function clearAll() {
+  tasks = [];
+  render();
+}
+
+function filter(type) {
+  currentFilter = type;
+  render();
+}
+
+function toggleTheme() {
+  document.body.classList.toggle("light");
+}
+
+document.getElementById("input")
+  .addEventListener("keypress", e => {
+    if (e.key === "Enter") add();
+  });
+
+render();
+</script>
+
+</body>
+</html>
